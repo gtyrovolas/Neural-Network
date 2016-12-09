@@ -148,11 +148,21 @@ mat forward(mat X){
     Z[3] = Z[2] * W[2];
     return sigmoid(Z[3]);
 }
-
-
-int main()
-{
-    srand(time(NULL));
+double sigmoidPrime(double z){
+    double p = pow(e, -z);
+    return p/((1 + p)*(1+ p));
+}
+mat sigmoidPrime(mat z){
+    mat sol;
+    sol.n = z.n;
+    sol.m = z.m;
+    for(ll i = 0; i < sol.m; i++){
+      for(ll j = 0; j < sol.n; j++){
+        sol.M[i][j] = sigmoidPrime(z.M[i][j]);
+      }
+    }
+}
+void minErrorRand(){
     double minim = 100;
     mat idx[3], sol;
     for(ll i = 0; i < 1000000; i++){
@@ -173,5 +183,13 @@ int main()
     out(W[2]);
     cout << "Sol  = \n";
     out(sol);
+}
+
+int main()
+{
+    srand(time(NULL));
+    for(double i = -5; i < 5; i += 0.1){
+        cout << i << " " << sigmoidPrime(i) << endl;
+    }
     return 0;
 }
