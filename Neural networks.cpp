@@ -185,11 +185,13 @@ void minErrorRand(){
     out(sol);
 }
 
+double costFPrime(mat X, mat y){
+
+}
+
+
 int main()
 {
     srand(time(NULL));
-    for(double i = -5; i < 5; i += 0.1){
-        cout << i << " " << sigmoidPrime(i) << endl;
-    }
     return 0;
 }
