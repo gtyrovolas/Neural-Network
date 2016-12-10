@@ -72,14 +72,16 @@ void out(mat A){
     }
     cout << endl;
 }
-
+mat multiply(mat A, mat B){
+    if(A.m != B.m || A.n != B.n) throw invalid_argument("God is Dead, and so is Nietzsche\n");
+    for(ll i = )
+}
 double fRand(double fMin, double fMax)
 {
 
     double f = (double)rand() / RAND_MAX;
     return fMin + f * (fMax - fMin);
 }
-
 void genMat(mat & A){
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
@@ -185,8 +187,14 @@ void minErrorRand(){
     out(sol);
 }
 
-double costFPrime(mat X, mat y){
+double costFPrime(mat X, mat y, mat &dJdW2, mat &dJdW1){
+    mat yHat = forward(X);
 
+    mat delta3 =multiply(-(y-yHat), sigmoidPrime(Z[3]));
+    mat dJdW2 = T(sigmoid(Z[2])) * delta3;
+
+    mat delta2 = multiply(delta3, T(W[2])) * sigmoidPrime(Z[2]);
+    mat dJdW1 = T(X) * delta2;
 }
 
 
