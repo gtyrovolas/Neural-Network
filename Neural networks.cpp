@@ -123,12 +123,19 @@ double fRand(double fMin, double fMax)
 void genMat(mat & A){
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
-        A.M[i][j] = fRand(-1,1);
+        A.M[i][j] = fRand(-2,2);
     //    cout << A.M[i][j] << endl;
       }
     }
 }
-
+mat scalMult(mat A, double sc){
+    for(ll i = 0; i < A.m; i++){
+      for(ll j = 0; j < A.n; j++){
+        A.M[i][j] *= sc;
+      }
+    }
+    return A;
+}
 ll inputSize = 2;
 ll outputSize = 1;
 ll hiddenLayer = 3;
@@ -164,10 +171,9 @@ mat sigmoid(mat z){
 void init(){
     X.m = dataM;
     X.n = dataN;
-    X.M[0][0] = 3; X.M[0][1] = 5;
-    X.M[1][0] = 5; X.M[1][1] = 1;
-    X.M[2][0] = 10; X.M[2][1] = 2;
-
+    X.M[0][0] = 3.0/24; X.M[0][1] = 5.0/24;
+    X.M[1][0] = 5.0/24; X.M[1][1] = 1.0/24;
+    X.M[2][0] = 10.0/24; X.M[2][1] = 2.0/24;
     Y.m = dataM;
     Y.n = 1;
     Y.M[0][0] = 0.75;
@@ -225,33 +231,39 @@ void minErrorRand(){
     cout << "Sol  = \n";
     out(sol);
 }
-double costFPrime(mat X, mat y, mat &dJdW2, mat &dJdW1){
-    mat yHat = forward(X);
-    out(yHat);
-    out(sigmoidPrime(Z[3]));
+double costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
+    yHat = forward(X);
+
     mat delta3 = multiply(yHat-y, sigmoidPrime(Z[3]));
-    outD(T(sigmoid(Z[2])));
-    outD(delta3);
     dJdW2 = T(sigmoid(Z[2])) * delta3;
-    cout << "Test\n";
-    cout << "Delta3 ";
-    outD(delta3);
-    cout << "T(W[2]) ";
-    outD(W[2]);
-    cout << "sigmoidPrime(Z[2]) ";
-    outD(sigmoidPrime(Z[2]));
-    mat delta2 = multiply(delta3, W[2]) * sigmoidPrime(Z[2]);
+
+    mat delta2 = (delta3 * T(W[2])) * sigmoidPrime(Z[2]);
     dJdW1 = T(X) * delta2;
 }
+void regulate(mat X, mat y){
+    mat dJdW1, dJdW2, yHat;
 
+    costFPrime(X, y, yHat, dJdW1, dJdW2);
+    double sc = 3;
+    W[1] = W[1] - scalMult(dJdW1, sc);
+    W[2] = W[2] - scalMult(dJdW2, sc);
+}
+void train(mat X, mat y, ll trials){
+    mat dJdW1, dJdW2;
+    for(ll i = 0; i < trials; i++){
+      regulate(X, y);
+    }
+    mat bestY = forward(X);
+    out(bestY);
+    double min = cost(bestY, y);
+    cout << min << endl;
+}
 
 int main()
 {
-    init();
-    mat A, B;
-    costFPrime(X, Y, A, B);
-    out(A);
-    out(B);
     srand(time(NULL));
+    init();
+    train(X, Y, 100);
+
     return 0;
 }
