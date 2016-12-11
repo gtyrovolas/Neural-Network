@@ -123,7 +123,7 @@ double fRand(double fMin, double fMax)
 void genMat(mat & A){
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
-        A.M[i][j] = fRand(-2,2);
+        A.M[i][j] = fRand(-5,5);
     //    cout << A.M[i][j] << endl;
       }
     }
@@ -163,7 +163,7 @@ mat sigmoid(mat z){
     sol.m = z.m; sol.n = z.n;
     for(ll i = 0; i < z.m; i++){
       for(ll j = 0; j < z.n; j++){
-        sol.M[i][j] = (double)1/(1 + pow(e, -z.M[i][j]));
+        sol.M[i][j] = (double)1/(1 + pow(e, -(z.M[i][j])));
       }
     }
     return sol;
@@ -171,11 +171,12 @@ mat sigmoid(mat z){
 void init(){
     X.m = dataM;
     X.n = dataN;
-    X.M[0][0] = 3.0/24; X.M[0][1] = 5.0/24;
-    X.M[1][0] = 5.0/24; X.M[1][1] = 1.0/24;
-    X.M[2][0] = 10.0/24; X.M[2][1] = 2.0/24;
+    X.M[0][0] = 3.0/10; X.M[0][1] = 5.0/10;
+    X.M[1][0] = 5.0/10; X.M[1][1] = 1.0/10;
+    X.M[2][0] = 10.0/10; X.M[2][1] = 2.0/10;
     Y.m = dataM;
     Y.n = 1;
+
     Y.M[0][0] = 0.75;
     Y.M[1][0] = 0.82;
     Y.M[2][0] = 0.93;
@@ -240,30 +241,57 @@ double costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
     mat delta2 = (delta3 * T(W[2])) * sigmoidPrime(Z[2]);
     dJdW1 = T(X) * delta2;
 }
-void regulate(mat X, mat y){
-    mat dJdW1, dJdW2, yHat;
+void regulate(mat X, mat y, mat &yHat){
+    mat dJdW1, dJdW2;
 
     costFPrime(X, y, yHat, dJdW1, dJdW2);
     double sc = 3;
     W[1] = W[1] - scalMult(dJdW1, sc);
     W[2] = W[2] - scalMult(dJdW2, sc);
 }
-void train(mat X, mat y, ll trials){
+ll train(mat X, mat y, ll trials){
     mat dJdW1, dJdW2;
+    mat best;
+    ll cnt = 0;
+    mat yHat;
+    ll id;
+    double mn = 100;
     for(ll i = 0; i < trials; i++){
-      regulate(X, y);
+      regulate(X, y, yHat);
+      if(cost(yHat, y) < mn){
+        mn = cost(yHat, y);
+        id = i;
+      }
     }
-    mat bestY = forward(X);
-    out(bestY);
-    double min = cost(bestY, y);
-    cout << min << endl;
+    return id;
+   // cout << cost(yHat, y) << " after " << cnt << endl;
+   // out(yHat);
 }
 
 int main()
 {
     srand(time(NULL));
-    init();
-    train(X, Y, 100);
-
+    double minim = 100;
+    mat B[3];
+    mat bestY;
+    ll id = 0;
+    for(ll i = 0; i < 50; i++){
+        cout << i << endl;
+        init();
+        train(X, Y, 10000);
+        double c = cost(forward(X), Y);
+        if(c < minim){
+          minim = c;
+          id = i;
+          B[1] = W[1];
+          B[2] = W[2];
+          bestY = forward(X);
+        }
+    }
+    out(B[1]);
+    out(B[2]);
+    out(bestY);
+    cout << cost(bestY, Y) << endl;
+    cout << id << endl;
     return 0;
 }
