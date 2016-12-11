@@ -68,6 +68,15 @@ struct mat{ // Matrix for at most 10x10
         return sol;
       }
     }
+    mat operator =(const mat &A){
+      m = A.m;
+      n = A.n;
+      for(ll i = 0; i < m; i++){
+        for(ll j = 0; j < n; j++){
+          M[i][j] = A.M[i][j];
+        }
+      }
+    }
 };
 mat T(mat A){
     mat sol;
@@ -90,8 +99,11 @@ void out(mat A){
     }
     cout << endl;
 }
+void outD(mat A){
+    cout << A.m << " " << A.n << endl;
+}
 mat multiply(mat A, mat B){
-    if(A.m != B.m || A.n != B.n) throw invalid_argument("God is Dead, and so is Nietzsche\n");
+    if(A.m != B.m || A.n != B.n) throw invalid_argument("Scalar Multiplication of Matrices Failed\n");
     mat sol;
     sol.n = A.n;
     sol.m = A.m;
@@ -100,6 +112,7 @@ mat multiply(mat A, mat B){
         sol.M[i][j] = A.M[i][j] * B.M[i][j];
       }
     }
+    return sol;
 }
 double fRand(double fMin, double fMax)
 {
@@ -188,6 +201,7 @@ mat sigmoidPrime(mat z){
         sol.M[i][j] = sigmoidPrime(z.M[i][j]);
       }
     }
+    return sol;
 }
 void minErrorRand(){
     double minim = 100;
@@ -213,17 +227,31 @@ void minErrorRand(){
 }
 double costFPrime(mat X, mat y, mat &dJdW2, mat &dJdW1){
     mat yHat = forward(X);
-
+    out(yHat);
+    out(sigmoidPrime(Z[3]));
     mat delta3 = multiply(yHat-y, sigmoidPrime(Z[3]));
+    outD(T(sigmoid(Z[2])));
+    outD(delta3);
     dJdW2 = T(sigmoid(Z[2])) * delta3;
-
-    mat delta2 = multiply(delta3, T(W[2])) * sigmoidPrime(Z[2]);
+    cout << "Test\n";
+    cout << "Delta3 ";
+    outD(delta3);
+    cout << "T(W[2]) ";
+    outD(W[2]);
+    cout << "sigmoidPrime(Z[2]) ";
+    outD(sigmoidPrime(Z[2]));
+    mat delta2 = multiply(delta3, W[2]) * sigmoidPrime(Z[2]);
     dJdW1 = T(X) * delta2;
 }
 
 
 int main()
 {
+    init();
+    mat A, B;
+    costFPrime(X, Y, A, B);
+    out(A);
+    out(B);
     srand(time(NULL));
     return 0;
 }
