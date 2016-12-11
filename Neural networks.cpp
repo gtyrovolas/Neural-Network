@@ -50,6 +50,24 @@ struct mat{ // Matrix for at most 10x10
       }
       return sol;
     }
+    mat operator -(const mat &A){
+      if(n != A.n || m != A.m)
+      {
+        throw invalid_argument( "Subtraction failed due to wrong dimensions" );
+      }
+      else
+      {
+        mat sol;
+        for(ll i = 0; i < m; i++){
+          for(ll j = 0; j < n; j++){
+            sol.M[i][j] = M[i][j] - A.M[i][j];
+          }
+        }
+        sol.m = m;
+        sol.n = n;
+        return sol;
+      }
+    }
 };
 mat T(mat A){
     mat sol;
@@ -74,7 +92,14 @@ void out(mat A){
 }
 mat multiply(mat A, mat B){
     if(A.m != B.m || A.n != B.n) throw invalid_argument("God is Dead, and so is Nietzsche\n");
-    for(ll i = )
+    mat sol;
+    sol.n = A.n;
+    sol.m = A.m;
+    for(ll i = 0; i < A.m; i++){
+      for(ll j = 0; j < A.n; j++){
+        sol.M[i][j] = A.M[i][j] * B.M[i][j];
+      }
+    }
 }
 double fRand(double fMin, double fMax)
 {
@@ -186,15 +211,14 @@ void minErrorRand(){
     cout << "Sol  = \n";
     out(sol);
 }
-
 double costFPrime(mat X, mat y, mat &dJdW2, mat &dJdW1){
     mat yHat = forward(X);
 
-    mat delta3 =multiply(-(y-yHat), sigmoidPrime(Z[3]));
-    mat dJdW2 = T(sigmoid(Z[2])) * delta3;
+    mat delta3 = multiply(yHat-y, sigmoidPrime(Z[3]));
+    dJdW2 = T(sigmoid(Z[2])) * delta3;
 
     mat delta2 = multiply(delta3, T(W[2])) * sigmoidPrime(Z[2]);
-    mat dJdW1 = T(X) * delta2;
+    dJdW1 = T(X) * delta2;
 }
 
 
