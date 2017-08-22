@@ -51,7 +51,7 @@ struct mat{ // Matrix for at most 10x10
       return sol;
     }
 };
-mat T(mat A){
+mat T(mat A){ // returns transposed matrix A
     mat sol;
     sol.m = A.n;
     sol.n = A.m;
@@ -63,7 +63,8 @@ mat T(mat A){
     }
     return sol;
 }
-void out(mat A){
+
+void out(mat A){ // outputs matrix A
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
         cout << A.M[i][j] << " ";
@@ -73,14 +74,14 @@ void out(mat A){
     cout << endl;
 }
 
-double fRand(double fMin, double fMax)
+double fRand(double fMin, double fMax) // generate random number between fMin and fMax
 {
 
     double f = (double)rand() / RAND_MAX;
     return fMin + f * (fMax - fMin);
 }
 
-void genMat(mat & A){
+void genMat(mat & A){ //generates a random matrix with elements from -1 to 1
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
         A.M[i][j] = fRand(-1,1);
