@@ -4,6 +4,8 @@
 #include <stdlib.h>
 #include <iomanip>
 #include <time.h>
+#include <assert.h>
+
 
 using namespace std;
 
@@ -207,6 +209,14 @@ double cost(mat X, mat y){ // cost function
     }
     return error/2;
 }
+double cost2(mat A, mat B){ // cost function
+    double error = 0;
+    assert(A.m == B.m && A.n == B.n);
+    for(ll i = 0; i < A.m; i++){
+      error += (A.M[i][0] - B.M[i][0]) * (A.M[i][0] - B.M[i][0]);
+    }
+    return error/2;
+}
 double sigmoidPrime(double z){ // Returns the derivative of the sigmoid function
     double p = pow(e, -z);
     return p/((1 + p)*( 1+ p));
@@ -238,13 +248,13 @@ void minErrorRand(){
         sol = yhat;
       }
     }
-    cout << "Minimum Error " << minim << endl;
+ /*   cout << "Minimum Error " << minim << endl;
     cout << "W[1] = \n";
     out(W[1]);
     cout << "W[2] = \n";
     out(W[2]);
     cout << "Sol  = \n";
-    out(sol);
+    out(sol);*/
 }
 
 void costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
@@ -252,37 +262,36 @@ void costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
 
     mat delta3 = multiply(yHat-y, sigmoidPrime(Z[3]));
     dJdW2 = T(A[2]) * delta3;
-
+/*
     cout <<"Delta 3" << endl;
     out(delta3);
     cout << "W[2] Transposed\n";
     out(T(W[2]));
     cout << "Sigmoid Prime of Z[2] \n";
-    out(sigmoidPrime(Z[2]));
+    out(sigmoidPrime(Z[2]));*/
     mat delta2 = multiply((delta3 * T(W[2])),sigmoidPrime(Z[2]));
     dJdW1 = T(X) * delta2;
 }
 
-void regulate(mat X, mat y, mat &yHat){
+void regulate(mat X, mat y, mat &yHat, double rate){
     mat dJdW1, dJdW2;
-
     costFPrime(X, y, yHat, dJdW1, dJdW2);
-    double sc = 3;
-    W[1] = W[1] - scalMult(dJdW1, sc);
-    W[2] = W[2] - scalMult(dJdW2, sc);
+    W[1] = W[1] - scalMult(dJdW1, rate);
+    W[2] = W[2] - scalMult(dJdW2, rate);
 }
 
-ll train(mat X, mat y, ll trials){
+ll train(mat X, mat y, ll trials, double rate){
     mat dJdW1, dJdW2;
     mat best;
     ll cnt = 0;
     mat yHat;
     ll id;
-    double mn = 100;
+    double mn = 100000;
     for(ll i = 0; i < trials; i++){
-      regulate(X, y, yHat);
-      if(cost(yHat, y) < mn){
-        mn = cost(yHat, y);
+      regulate(X, y, yHat,rate);
+   //   out(yHat);
+      if(cost2(yHat, y) < mn){
+        mn = cost2(yHat, y);
         id = i;
       }
     }
@@ -342,16 +351,27 @@ int main(){
 
     mat dJdW1, dJdW2;
     mat numdW1, numdW2;
-    getGradients(dJdW1,dJdW2);
-    computeNumericalGradient(X, Y, numdW1, numdW2);
-    cout << "dJdW1" << endl;
-    out(dJdW1);
-    cout << "numdW1" << endl;
-    out(numdW1);
-    cout << "dJdW2" << endl;
-    out(dJdW2);
-    cout << "numdW2" << endl;
-    out(numdW2);
+    cout << train(X, Y, 100000, 20) << endl;
+    cout << "yHat\n";
+    out(forward(X));
+    cout  << " vs Y" << endl;
+    out(Y);
+    cout << cost2(Y,forward(X)) << endl;
+
+    cout << "Weights \n";
+    out(W[1]);
+    out(W[2]);
+
+
+    mat X2;
+    X2.n = 2;
+    X2.m = 4;
+    X2.M[0][0] = 0; X2.M[0][1] = 0;
+    X2.M[1][0] = 0; X2.M[1][1] = 1;
+    X2.M[2][0] = 1; X2.M[2][1] = 0;
+    X2.M[3][0] = 1; X2.M[3][1] = 1;
+    cout << "Results of X2" << endl;
+    out(forward(X2));
 }
 
 
