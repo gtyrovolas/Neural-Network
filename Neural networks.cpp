@@ -10,10 +10,11 @@ using namespace std;
 typedef long long ll;
 
 const double e = 2.71828182845904523536028747135266249775724709369995;
+// All these are the infastructure of a matrix
 struct mat{ // Matrix for at most 10x10
-    ll m, n;
+    ll m, n; // matrix is m x n
     double M[10][10] = {};
-    mat operator +(const mat &A){
+    mat operator +(const mat &A){ // matrix addition
       if(n != A.n || m != A.m)
       {
         throw invalid_argument( "Addition failed due to wrong dimensions" );
@@ -31,7 +32,7 @@ struct mat{ // Matrix for at most 10x10
         return sol;
       }
     }
-    mat operator *(const mat &A){
+    mat operator *(const mat &A){ // matrix multiplication
       if(n != A.m){
         throw invalid_argument( "Multiplication failed due to incompatible matrices" );
       }
@@ -50,7 +51,7 @@ struct mat{ // Matrix for at most 10x10
       }
       return sol;
     }
-    mat operator -(const mat &A){
+    mat operator -(const mat &A){ // subtraction
       if(n != A.n || m != A.m)
       {
         throw invalid_argument( "Subtraction failed due to wrong dimensions" );
@@ -68,7 +69,7 @@ struct mat{ // Matrix for at most 10x10
         return sol;
       }
     }
-    mat operator =(const mat &A){
+    mat operator =(const mat &A){ // equals
       m = A.m;
       n = A.n;
       for(ll i = 0; i < m; i++){
@@ -90,7 +91,7 @@ mat T(mat A){
     }
     return sol;
 }
-void out(mat A){
+void out(mat A){ // output Matrix Contents
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
         cout << A.M[i][j] << " ";
@@ -99,10 +100,10 @@ void out(mat A){
     }
     cout << endl;
 }
-void outD(mat A){
+void outD(mat A){ // ouput Dimensions
     cout << A.m << " " << A.n << endl;
 }
-mat multiply(mat A, mat B){
+mat multiply(mat A, mat B){ // scalar multiplication of two matrices
     if(A.m != B.m || A.n != B.n) throw invalid_argument("Scalar Multiplication of Matrices Failed\n");
     mat sol;
     sol.n = A.n;
@@ -114,21 +115,20 @@ mat multiply(mat A, mat B){
     }
     return sol;
 }
-double fRand(double fMin, double fMax)
+double fRand(double fMin, double fMax) // generate random numbers
 {
 
     double f = (double)rand() / RAND_MAX;
     return fMin + f * (fMax - fMin);
 }
-void genMat(mat & A){
+void genMat(mat & A){ // fill a matrix with elements from -5 to 5
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
         A.M[i][j] = fRand(-5,5);
-    //    cout << A.M[i][j] << endl;
       }
     }
 }
-mat scalMult(mat A, double sc){
+mat scalMult(mat A, double sc){ // multiply a matrix A by a scalar
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
         A.M[i][j] *= sc;
@@ -136,29 +136,34 @@ mat scalMult(mat A, double sc){
     }
     return A;
 }
-ll inputSize = 2;
-ll outputSize = 1;
-ll hiddenLayer = 3;
-ll dataM = 3;
-ll dataN = 2;
 
-mat X;
-mat Y;
 
-mat W[10];
-mat Z[5];
 
-double cost(mat yhat, mat y){
+
+// setting HyperParameters
+ll inputSize = 2; // number of input neurons
+ll outputSize = 1; // number of output neurons
+ll hiddenLayer = 3; // number of neurons in the hidden layers
+ll dataM = 3;  // number of cases, also one dimension of the input matrix
+ll dataN = 2;  // number of input neurons
+
+mat X; // input
+mat Y; // result
+
+mat W[10]; // matrix that contains the weights of the synapses
+mat Z[5];  // matrix that contains the activated version of the data given
+
+double cost(mat yhat, mat y){ // cost function
     double error = 0;
     for(ll i = 0; i < dataM; i++){
       error += (y.M[i][0] - yhat.M[i][0]) * (y.M[i][0] - yhat.M[i][0]);
     }
     return error/2;
 }
-double sigmoid(double z){
+double sigmoid(double z){ // sigmoid of a number
     return (double)1/(1 + pow(e, -z));
 }
-mat sigmoid(mat z){
+mat sigmoid(mat z){ // making the sigmoid of each item in a matrix
     mat sol;
     sol.m = z.m; sol.n = z.n;
     for(ll i = 0; i < z.m; i++){
@@ -168,7 +173,8 @@ mat sigmoid(mat z){
     }
     return sol;
 }
-void init(){
+
+void init(){ // initialising the training
     X.m = dataM;
     X.n = dataN;
     X.M[0][0] = 3.0/10; X.M[0][1] = 5.0/10;
@@ -189,17 +195,20 @@ void init(){
     W[2].n = outputSize;
     genMat(W[2]);
 }
-mat forward(mat X){
+
+mat forward(mat X){  // forward propagation
     Z[2] = X * W[1];
     Z[2] = sigmoid(Z[2]);
     Z[3] = Z[2] * W[2];
     return sigmoid(Z[3]);
 }
-double sigmoidPrime(double z){
+
+double sigmoidPrime(double z){ // Returns the derivative of the sigmoid function
     double p = pow(e, -z);
     return p/((1 + p)*(1+ p));
 }
-mat sigmoidPrime(mat z){
+
+mat sigmoidPrime(mat z){ // returns the derivative of each element in a matrix
     mat sol;
     sol.n = z.n;
     sol.m = z.m;
@@ -210,6 +219,7 @@ mat sigmoidPrime(mat z){
     }
     return sol;
 }
+
 void minErrorRand(){
     double minim = 100;
     mat idx[3], sol;
@@ -232,6 +242,7 @@ void minErrorRand(){
     cout << "Sol  = \n";
     out(sol);
 }
+
 double costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
     yHat = forward(X);
 
@@ -241,6 +252,7 @@ double costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
     mat delta2 = (delta3 * T(W[2])) * sigmoidPrime(Z[2]);
     dJdW1 = T(X) * delta2;
 }
+
 void regulate(mat X, mat y, mat &yHat){
     mat dJdW1, dJdW2;
 
@@ -249,6 +261,7 @@ void regulate(mat X, mat y, mat &yHat){
     W[1] = W[1] - scalMult(dJdW1, sc);
     W[2] = W[2] - scalMult(dJdW2, sc);
 }
+
 ll train(mat X, mat y, ll trials){
     mat dJdW1, dJdW2;
     mat best;
