@@ -121,10 +121,10 @@ double fRand(double fMin, double fMax) // generate random numbers
     double f = (double)rand() / RAND_MAX;
     return fMin + f * (fMax - fMin);
 }
-void genMat(mat & A){ // fill a matrix with elements from -5 to 5
+void genMat(mat & A, double fMin, double fMax){ // fill a matrix with elements from -5 to 5
     for(ll i = 0; i < A.m; i++){
       for(ll j = 0; j < A.n; j++){
-        A.M[i][j] = fRand(-5,5);
+        A.M[i][j] = fRand(fMin,fMax);
       }
     }
 }
@@ -151,15 +151,10 @@ mat X; // input
 mat Y; // result
 
 mat W[10]; // matrix that contains the weights of the synapses
-mat Z[5];  // matrix that contains the activated version of the data given
+mat Z[5];  // matrix that contains the raw version of the data
+mat A[5]; // matrix that contains the activated data
 
-double cost(mat yhat, mat y){ // cost function
-    double error = 0;
-    for(ll i = 0; i < dataM; i++){
-      error += (y.M[i][0] - yhat.M[i][0]) * (y.M[i][0] - yhat.M[i][0]);
-    }
-    return error/2;
-}
+
 double sigmoid(double z){ // sigmoid of a number
     return (double)1/(1 + pow(e, -z));
 }
@@ -177,9 +172,9 @@ mat sigmoid(mat z){ // making the sigmoid of each item in a matrix
 void init(){ // initialising the training
     X.m = dataM;
     X.n = dataN;
-    X.M[0][0] = 3.0/10; X.M[0][1] = 5.0/10;
-    X.M[1][0] = 5.0/10; X.M[1][1] = 1.0/10;
-    X.M[2][0] = 10.0/10; X.M[2][1] = 2.0/10;
+    X.M[0][0] = 3.0/10; X.M[0][1] = 10.0/10;
+    X.M[1][0] = 5.0/10; X.M[1][1] = 2.0/10;
+    X.M[2][0] = 10.0/10; X.M[2][1] = 4.0/10;
     Y.m = dataM;
     Y.n = 1;
 
@@ -190,22 +185,31 @@ void init(){ // initialising the training
 
     W[1].m = inputSize;
     W[1].n = hiddenLayer;
-    genMat(W[1]);
+    genMat(W[1], -2, 2);
     W[2].m = hiddenLayer;
     W[2].n = outputSize;
-    genMat(W[2]);
+    genMat(W[2], -3, 3);
 }
 
 mat forward(mat X){  // forward propagation
+    mat yHat;
     Z[2] = X * W[1];
-    Z[2] = sigmoid(Z[2]);
-    Z[3] = Z[2] * W[2];
-    return sigmoid(Z[3]);
+    A[2] = sigmoid(Z[2]);
+    Z[3] = A[2] * W[2];
+    yHat = sigmoid(Z[3]);
+    return yHat;
 }
-
+double cost(mat X, mat y){ // cost function
+    mat yHat = forward(X);
+    double error = 0;
+    for(ll i = 0; i < dataM; i++){
+      error += (y.M[i][0] - yHat.M[i][0]) * (y.M[i][0] - yHat.M[i][0]);
+    }
+    return error/2;
+}
 double sigmoidPrime(double z){ // Returns the derivative of the sigmoid function
     double p = pow(e, -z);
-    return p/((1 + p)*(1+ p));
+    return p/((1 + p)*( 1+ p));
 }
 
 mat sigmoidPrime(mat z){ // returns the derivative of each element in a matrix
@@ -243,13 +247,19 @@ void minErrorRand(){
     out(sol);
 }
 
-double costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
+void costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
     yHat = forward(X);
 
     mat delta3 = multiply(yHat-y, sigmoidPrime(Z[3]));
-    dJdW2 = T(sigmoid(Z[2])) * delta3;
+    dJdW2 = T(A[2]) * delta3;
 
-    mat delta2 = (delta3 * T(W[2])) * sigmoidPrime(Z[2]);
+    cout <<"Delta 3" << endl;
+    out(delta3);
+    cout << "W[2] Transposed\n";
+    out(T(W[2]));
+    cout << "Sigmoid Prime of Z[2] \n";
+    out(sigmoidPrime(Z[2]));
+    mat delta2 = multiply((delta3 * T(W[2])),sigmoidPrime(Z[2]));
     dJdW1 = T(X) * delta2;
 }
 
@@ -281,6 +291,73 @@ ll train(mat X, mat y, ll trials){
    // out(yHat);
 }
 
+
+// check with numerical gradient
+
+void getGradients(mat &dJdW1, mat &dJdW2){ // function to get the Gradients computed by costFPrime
+    mat yHat;
+    costFPrime(X, Y, yHat, dJdW1, dJdW2);
+}
+
+
+void computeNumericalGradient(mat X, mat Y, mat &numdW1, mat &numdW2){ // Numerical gradient Descent
+    mat dJdW1, dJdW2;
+    getGradients(dJdW1, dJdW2);
+    double eps = 0.0001;
+    numdW1.n = dJdW1.n; numdW1.m = dJdW1.m;
+    numdW2.n = dJdW2.n; numdW2.m = dJdW2.m;
+
+    for(ll i = 0; i < numdW2.m; i++){
+      for(ll j = 0; j < numdW2.n; j++){
+        W[2].M[i][j] += eps;
+        double loss2 = cost(X, Y);
+
+        W[2].M[i][j] -= 2*eps;
+        double loss1 = cost(X, Y);
+
+        numdW2.M[i][j] = (loss2 - loss1)/ (2*eps);
+        W[2].M[i][j] += eps;
+      }
+    }
+
+    for(ll i = 0; i < numdW1.m; i++){
+      for(ll j = 0; j < numdW1.n; j++){
+        W[1].M[i][j] += eps;
+        double loss2 = cost(X, Y);
+
+        W[1].M[i][j] -= 2*eps;
+        double loss1 = cost(X, Y);
+
+        numdW1.M[i][j] = (loss2 - loss1)/ (2*eps);
+        W[1].M[i][j] += eps;
+      }
+    }
+}
+
+
+
+int main(){
+    srand(time(NULL));
+    init();
+
+    mat dJdW1, dJdW2;
+    mat numdW1, numdW2;
+    getGradients(dJdW1,dJdW2);
+    computeNumericalGradient(X, Y, numdW1, numdW2);
+    cout << "dJdW1" << endl;
+    out(dJdW1);
+    cout << "numdW1" << endl;
+    out(numdW1);
+    cout << "dJdW2" << endl;
+    out(dJdW2);
+    cout << "numdW2" << endl;
+    out(numdW2);
+}
+
+
+
+
+/*
 int main()
 {
     srand(time(NULL));
@@ -307,4 +384,4 @@ int main()
     cout << cost(bestY, Y) << endl;
     cout << id << endl;
     return 0;
-}
+}*/
