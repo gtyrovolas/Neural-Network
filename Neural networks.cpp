@@ -5,7 +5,7 @@
 #include <iomanip>
 #include <time.h>
 #include <assert.h>
-
+#include <cmath>
 
 using namespace std;
 
@@ -146,11 +146,13 @@ mat scalMult(mat A, double sc){ // multiply a matrix A by a scalar
 ll inputSize = 2; // number of input neurons
 ll outputSize = 1; // number of output neurons
 ll hiddenLayer = 3; // number of neurons in the hidden layers
+ll testSize = 5;  // number of testing data
 ll dataM = 3;  // number of cases, also one dimension of the input matrix
 ll dataN = 2;  // number of input neurons
 
 mat X; // input
 mat Y; // result
+mat test; // testing data
 
 mat W[10]; // matrix that contains the weights of the synapses
 mat Z[5];  // matrix that contains the raw version of the data
@@ -207,7 +209,7 @@ double cost(mat X, mat y){ // cost function
     for(ll i = 0; i < dataM; i++){
       error += (y.M[i][0] - yHat.M[i][0]) * (y.M[i][0] - yHat.M[i][0]);
     }
-    return error/2;
+    return error/(2 * dataM);
 }
 double cost2(mat A, mat B){ // cost function
     double error = 0;
@@ -215,7 +217,7 @@ double cost2(mat A, mat B){ // cost function
     for(ll i = 0; i < A.m; i++){
       error += (A.M[i][0] - B.M[i][0]) * (A.M[i][0] - B.M[i][0]);
     }
-    return error/2;
+    return error/(2 * A.m);
 }
 double sigmoidPrime(double z){ // Returns the derivative of the sigmoid function
     double p = pow(e, -z);
@@ -248,13 +250,6 @@ void minErrorRand(){
         sol = yhat;
       }
     }
- /*   cout << "Minimum Error " << minim << endl;
-    cout << "W[1] = \n";
-    out(W[1]);
-    cout << "W[2] = \n";
-    out(W[2]);
-    cout << "Sol  = \n";
-    out(sol);*/
 }
 
 void costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
@@ -262,13 +257,7 @@ void costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
 
     mat delta3 = multiply(yHat-y, sigmoidPrime(Z[3]));
     dJdW2 = T(A[2]) * delta3;
-/*
-    cout <<"Delta 3" << endl;
-    out(delta3);
-    cout << "W[2] Transposed\n";
-    out(T(W[2]));
-    cout << "Sigmoid Prime of Z[2] \n";
-    out(sigmoidPrime(Z[2]));*/
+
     mat delta2 = multiply((delta3 * T(W[2])),sigmoidPrime(Z[2]));
     dJdW1 = T(X) * delta2;
 }
