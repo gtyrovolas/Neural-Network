@@ -357,7 +357,7 @@ int main(){
 
     mat dJdW1, dJdW2;
     mat numdW1, numdW2;
-    cout << train(X, Y, 20000, 1) << endl;
+    cout << train(X, Y, 20000, 5) << endl;
     cout << "yHat\n";
     out(forward(X));
     cout  << " vs Y" << endl;
