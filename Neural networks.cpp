@@ -15,7 +15,7 @@ const double e = 2.71828182845904523536028747135266249775724709369995;
 // All these are the infastructure of a matrix
 struct mat{ // Matrix for at most 10x10
     ll m, n; // matrix is m x n
-    double M[10][10] = {};
+    double M[50][50] = {};
     mat operator +(const mat &A){ // matrix addition
       if(n != A.n || m != A.m)
       {
