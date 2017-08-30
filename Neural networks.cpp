@@ -12,6 +12,7 @@ using namespace std;
 typedef long long ll;
 const double epsilon = 0.0001;
 const double e = 2.71828182845904523536028747135266249775724709369995;
+const double pi = 3.14159265359;
 // All these are the infastructure of a matrix
 struct mat{ // Matrix for at most 10x10
     ll m, n; // matrix is m x n
@@ -143,11 +144,11 @@ mat scalMult(mat A, double sc){ // multiply a matrix A by a scalar
 
 
 // setting HyperParameters
-ll inputSize = 2; // number of input neurons
+ll inputSize = 1; // number of input neurons
 ll outputSize = 1; // number of output neurons
-ll hiddenLayer = 3; // number of neurons in the hidden layers
-ll dataM = 3;  // number of cases, also one dimension of the input matrix
-ll dataN = 2;  // number of input neurons
+ll hiddenLayer = 15; // number of neurons in the hidden layers
+ll dataM = 50;  // number of cases, also one dimension of the input matrix
+ll dataN = inputSize;  // number of input neurons
 
 mat X; // input
 mat Y; // result
@@ -174,15 +175,18 @@ mat sigmoid(mat z){ // making the sigmoid of each item in a matrix
 void init(){ // initialising the training
     X.m = dataM;
     X.n = dataN;
-    X.M[0][0] = 3.0/10; X.M[0][1] = 10.0/10;
-    X.M[1][0] = 5.0/10; X.M[1][1] = 2.0/10;
-    X.M[2][0] = 10.0/10; X.M[2][1] = 4.0/10;
+
+    for(ll i = 0; i < dataM; i++){
+      X.M[i][0] = (double)i / (dataM-1);
+   //   cout << X.M[i][0] << endl;
+    }
+
     Y.m = dataM;
     Y.n = 1;
 
-    Y.M[0][0] = 0.75;
-    Y.M[1][0] = 0.82;
-    Y.M[2][0] = 0.93;
+    for(ll i = 0; i < dataM; i++){
+      Y.M[i][0] = sin(X.M[i][0] * pi);
+    }
 
 
     W[1].m = inputSize;
@@ -190,7 +194,7 @@ void init(){ // initialising the training
     genMat(W[1], -2, 2);
     W[2].m = hiddenLayer;
     W[2].n = outputSize;
-    genMat(W[2], -3, 3);
+    genMat(W[2], -2, 2);
 }
 
 mat forward(mat X){  // forward propagation
@@ -207,7 +211,7 @@ double cost(mat X, mat y){ // cost function
     for(ll i = 0; i < dataM; i++){
       error += (y.M[i][0] - yHat.M[i][0]) * (y.M[i][0] - yHat.M[i][0]);
     }
-    return error/2;
+    return error/(2*dataM);
 }
 double cost2(mat A, mat B){ // cost function
     double error = 0;
@@ -215,7 +219,7 @@ double cost2(mat A, mat B){ // cost function
     for(ll i = 0; i < A.m; i++){
       error += (A.M[i][0] - B.M[i][0]) * (A.M[i][0] - B.M[i][0]);
     }
-    return error/2;
+    return error/(2*dataM);
 }
 double sigmoidPrime(double z){ // Returns the derivative of the sigmoid function
     double p = pow(e, -z);
@@ -328,7 +332,7 @@ ll train(mat X, mat y, ll trials, double rate){
         mn = cost2(yHat, y);
         id = i;
       }
-      if(i % 1000 == 0) cout << "For trial " << i << " cost is "<< cost2(yHat, y) << endl;
+      if(i % 100 == 0) cout << "For trial " << i << " cost is "<< cost2(yHat, y) << endl;
     }
     return id;
    // cout << cost(yHat, y) << " after " << cnt << endl;
@@ -353,7 +357,7 @@ int main(){
 
     mat dJdW1, dJdW2;
     mat numdW1, numdW2;
-    cout << train(X, Y, 10000, 1) << endl;
+    cout << train(X, Y, 20000, 1) << endl;
     cout << "yHat\n";
     out(forward(X));
     cout  << " vs Y" << endl;
@@ -363,6 +367,4 @@ int main(){
     cout << "Weights \n";
     out(W[1]);
     out(W[2]);
-
-    cout << "Results of X2" << endl;
 }
