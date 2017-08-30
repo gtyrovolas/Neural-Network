@@ -10,7 +10,7 @@
 using namespace std;
 
 typedef long long ll;
-
+const double epsilon = 0.0001;
 const double e = 2.71828182845904523536028747135266249775724709369995;
 // All these are the infastructure of a matrix
 struct mat{ // Matrix for at most 10x10
@@ -273,48 +273,10 @@ void costFPrime(mat X, mat y, mat &yHat, mat &dJdW1, mat &dJdW2){
     dJdW1 = T(X) * delta2;
 }
 
-void regulate(mat X, mat y, mat &yHat, double rate){
+void computeNumericalGradient(mat X, mat Y, mat &numdW1, mat &numdW2, double eps){ // Numerical gradient Descent
     mat dJdW1, dJdW2;
-    costFPrime(X, y, yHat, dJdW1, dJdW2);
-    W[1] = W[1] - scalMult(dJdW1, rate);
-    W[2] = W[2] - scalMult(dJdW2, rate);
-}
-
-ll train(mat X, mat y, ll trials, double rate){
-    mat dJdW1, dJdW2;
-    mat best;
-    ll cnt = 0;
-    mat yHat;
-    ll id;
-    double mn = 100000;
-    for(ll i = 0; i < trials; i++){
-      regulate(X, y, yHat,rate);
-   //   out(yHat);
-      if(cost2(yHat, y) < mn){
-        mn = cost2(yHat, y);
-        id = i;
-      }
-    }
-    return id;
-   // cout << cost(yHat, y) << " after " << cnt << endl;
-   // out(yHat);
-}
-
-
-// check with numerical gradient
-
-void getGradients(mat &dJdW1, mat &dJdW2){ // function to get the Gradients computed by costFPrime
-    mat yHat;
-    costFPrime(X, Y, yHat, dJdW1, dJdW2);
-}
-
-
-void computeNumericalGradient(mat X, mat Y, mat &numdW1, mat &numdW2){ // Numerical gradient Descent
-    mat dJdW1, dJdW2;
-    getGradients(dJdW1, dJdW2);
-    double eps = 0.0001;
-    numdW1.n = dJdW1.n; numdW1.m = dJdW1.m;
-    numdW2.n = dJdW2.n; numdW2.m = dJdW2.m;
+    numdW1.n = W[1].n; numdW1.m = W[1].m;
+    numdW2.n = W[2].n; numdW2.m = W[2].m;
 
     for(ll i = 0; i < numdW2.m; i++){
       for(ll j = 0; j < numdW2.n; j++){
@@ -344,6 +306,46 @@ void computeNumericalGradient(mat X, mat Y, mat &numdW1, mat &numdW2){ // Numeri
 }
 
 
+void regulate(mat X, mat y, mat &yHat, double rate){
+    mat dJdW1, dJdW2;
+    computeNumericalGradient(X, y, dJdW1, dJdW2, epsilon);
+    W[1] = W[1] - scalMult(dJdW1, rate);
+    W[2] = W[2] - scalMult(dJdW2, rate);
+    yHat = forward(X);
+}
+
+ll train(mat X, mat y, ll trials, double rate){
+    mat dJdW1, dJdW2;
+    mat best;
+    ll cnt = 0;
+    mat yHat;
+    ll id;
+    double mn = 100000;
+    for(ll i = 0; i < trials; i++){
+      regulate(X, y, yHat,rate);
+   //   out(yHat);
+      if(cost2(yHat, y) < mn){
+        mn = cost2(yHat, y);
+        id = i;
+      }
+      if(i % 1000 == 0) cout << "For trial " << i << " cost is "<< cost2(yHat, y) << endl;
+    }
+    return id;
+   // cout << cost(yHat, y) << " after " << cnt << endl;
+   // out(yHat);
+}
+
+
+// check with numerical gradient
+
+void getGradients(mat &dJdW1, mat &dJdW2){ // function to get the Gradients computed by costFPrime
+    mat yHat;
+    costFPrime(X, Y, yHat, dJdW1, dJdW2);
+}
+
+
+
+
 
 int main(){
     srand(time(NULL));
@@ -362,46 +364,5 @@ int main(){
     out(W[1]);
     out(W[2]);
 
-
-    mat X2;
-    X2.n = 2;
-    X2.m = 4;
-    X2.M[0][0] = 0; X2.M[0][1] = 0;
-    X2.M[1][0] = 0; X2.M[1][1] = 1;
-    X2.M[2][0] = 1; X2.M[2][1] = 0;
-    X2.M[3][0] = 1; X2.M[3][1] = 1;
     cout << "Results of X2" << endl;
-    out(forward(X2));
 }
-
-
-
-
-/*
-int main()
-{
-    srand(time(NULL));
-    double minim = 100;
-    mat B[3];
-    mat bestY;
-    ll id = 0;
-    for(ll i = 0; i < 50; i++){
-        cout << i << endl;
-        init();
-        train(X, Y, 10000);
-        double c = cost(forward(X), Y);
-        if(c < minim){
-          minim = c;
-          id = i;
-          B[1] = W[1];
-          B[2] = W[2];
-          bestY = forward(X);
-        }
-    }
-    out(B[1]);
-    out(B[2]);
-    out(bestY);
-    cout << cost(bestY, Y) << endl;
-    cout << id << endl;
-    return 0;
-}*/
